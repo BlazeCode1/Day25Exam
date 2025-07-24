@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.day25exam.Api.ApiResponse;
 import org.example.day25exam.Model.Book;
-import org.example.day25exam.Model.User;
 import org.example.day25exam.Service.BookService;
 import org.example.day25exam.Service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +17,12 @@ import java.util.ArrayList;
 @RequestMapping("/api/v1/book")
 public class BookController {
 
-    private final BookService service;
+    private final BookService bookService;
+    private final UserService userService;
 
     @GetMapping("/get")
     public ResponseEntity<?> getBooks(){
-        return ResponseEntity.ok(service.getBooks());
+        return ResponseEntity.ok(bookService.getBooks());
     }
 
 
@@ -31,7 +31,7 @@ public class BookController {
         if(err.hasErrors()){
             return ResponseEntity.badRequest().body(new ApiResponse(err.getFieldError().getDefaultMessage()));
         }
-        if(service.addBook(book)){
+        if(bookService.addBook(book)){
             return ResponseEntity.ok(new ApiResponse("Book Added Successfully"));
         }
         return ResponseEntity.badRequest().body(new ApiResponse("Book ID Already Added"));
@@ -43,7 +43,7 @@ public class BookController {
         if(err.hasErrors())
             return ResponseEntity.badRequest().body(new ApiResponse(err.getFieldError().getDefaultMessage()));
 
-        if(service.updateBook(book)){
+        if(bookService.updateBook(book)){
             return ResponseEntity.ok(new ApiResponse("Book Updated Successfully"));
         }
         return ResponseEntity.badRequest().body(new ApiResponse("Book ID Not Found"));
@@ -51,7 +51,7 @@ public class BookController {
 
     @DeleteMapping("/delete/{ID}")
     public ResponseEntity<?> deleteUser(@PathVariable String ID){
-        if(service.deleteBook(ID)){
+        if(bookService.deleteBook(ID)){
             return ResponseEntity.ok(new ApiResponse("Book Deleted Successfully"));
         }
         return ResponseEntity.badRequest().body(new ApiResponse("Book ID Not Found"));
@@ -59,7 +59,7 @@ public class BookController {
 
     @GetMapping("/get/name/{name}")
     public ResponseEntity<?> getBookByName(@PathVariable String name){
-        Book searchedBook = service.getBookByName(name);
+        Book searchedBook = bookService.getBookByName(name);
         if(searchedBook == null){
             return ResponseEntity.badRequest().body(new ApiResponse("Book Not Found"));
         }
@@ -68,7 +68,7 @@ public class BookController {
 
     @GetMapping("/get/category/{category}")
     public ResponseEntity<?> getBookByCategory(@PathVariable String category){
-        ArrayList<Book> filteredCategory = service.getBooksByCategory(category);
+        ArrayList<Book> filteredCategory = bookService.getBooksByCategory(category);
         if(filteredCategory == null){
             return ResponseEntity.badRequest().body(new ApiResponse("Category is wrong"));
         }
@@ -84,7 +84,7 @@ public class BookController {
         if(numberOfPages < 0){
             return ResponseEntity.badRequest().body(new ApiResponse("Number of Pages Should Be Positive"));
         }
-        ArrayList<Book> sameNumberPages = service.numberOfPages(numberOfPages);
+        ArrayList<Book> sameNumberPages = bookService.numberOfPages(numberOfPages);
 
         if(sameNumberPages.isEmpty()){
             return ResponseEntity.badRequest().body(new ApiResponse("No Books With the same Number Of Pages"));
@@ -95,7 +95,14 @@ public class BookController {
 
     @PostMapping("/change/status/{librarianID}/{bookID}")
     public ResponseEntity<?> changeBookStatus(@PathVariable String librarianID,@PathVariable String bookID){
-        int status = service.changeStatus(librarianID,bookID);
+
+        int status = bookService.changeStatus(librarianID,bookID,userService.getUsers());
+        if(status == -1){
+            return ResponseEntity.badRequest().body(new ApiResponse("No Authorized Users"));
+        }
+        if(status == 2){
+            return ResponseEntity.badRequest().body(new ApiResponse("All Books Are unAvailable"));
+        }
         if(status == 0){
             return ResponseEntity.badRequest().body(new ApiResponse("Not Authorized to change Status!"));
         }

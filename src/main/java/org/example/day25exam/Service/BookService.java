@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
-import static org.example.day25exam.Service.UserService.users;
-
 @Service
 public class BookService {
         ArrayList<Book> books = new ArrayList<>();
@@ -81,7 +79,7 @@ public class BookService {
             return sameNumberOfPages;
     }
 
-    public int changeStatus(String librarianID, String bookID){
+    public int changeStatus(String librarianID, String bookID,ArrayList<User> users){
             boolean flag = false;
             for (User u : users){
                 if (u.getID().equals(librarianID) && u.getRole().equalsIgnoreCase("librarian")) {
@@ -96,6 +94,7 @@ public class BookService {
                     return 1;
                 }
             }
+            return 2;
         }
         return 0;
     }

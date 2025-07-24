@@ -8,7 +8,7 @@ import java.util.ArrayList;
 @Service
 public class UserService {
 
-    static ArrayList<User> users = new ArrayList<>();
+    ArrayList<User> users = new ArrayList<>();
 
     public ArrayList<User> getUsers(){
         return users;
